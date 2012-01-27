@@ -4,7 +4,6 @@ request = require 'request'
 querystring = require 'querystring'
 playlist = require './playlist'
 
-
 app = express.createServer()
 app.use express.static __dirname + '/public'
 app.register '.hamlc', hamlc
@@ -19,18 +18,20 @@ app.get '/playlist/:id/:genreId', (req, res) ->
     playlist.get req.params.id, req.params.genreId, (list) ->
         res.send JSON.stringify list
 
-app.get '/cover/:search', (req, res) ->
+app.get '/cover/:query', (req, res) ->
     params = querystring.stringify
-        term: req.params.search
+        term: req.params.query
         media: 'music'
         country: 'JP'
         limit: '1'
         lang: 'ja_jp'
     request.get "http://ax.phobos.apple.com.edgesuite.net/WebObjects/MZStoreServices.woa/wa/wsSearch?#{params}", (error, response, body) ->
+        imageUrl = '/images/no-cover.gif'
         if response.statusCode is 200
             data = JSON.parse body
             if data?.results?[0]?.artworkUrl100?
-                res.redirect data.results[0].artworkUrl100
+                imageUrl = data.results[0].artworkUrl100
+        res.redirect imageUrl
     
 
 port = process.env.PORT or 3000

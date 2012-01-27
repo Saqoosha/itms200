@@ -34,23 +34,25 @@
     });
   });
 
-  app.get('/cover/:search', function(req, res) {
+  app.get('/cover/:query', function(req, res) {
     var params;
     params = querystring.stringify({
-      term: req.params.search,
+      term: req.params.query,
       media: 'music',
       country: 'JP',
       limit: '1',
       lang: 'ja_jp'
     });
     return request.get("http://ax.phobos.apple.com.edgesuite.net/WebObjects/MZStoreServices.woa/wa/wsSearch?" + params, function(error, response, body) {
-      var data, _ref, _ref2;
+      var data, imageUrl, _ref, _ref2;
+      imageUrl = '/images/no-cover.gif';
       if (response.statusCode === 200) {
         data = JSON.parse(body);
         if ((data != null ? (_ref = data.results) != null ? (_ref2 = _ref[0]) != null ? _ref2.artworkUrl100 : void 0 : void 0 : void 0) != null) {
-          return res.redirect(data.results[0].artworkUrl100);
+          imageUrl = data.results[0].artworkUrl100;
         }
       }
+      return res.redirect(imageUrl);
     });
   });
 
