@@ -1,0 +1,27 @@
+!!!
+%html
+	%head
+		%meta{charset="utf-8"}
+		%title iTunes Ranking Player
+		
+		%link{rel="stylesheet", href="css/bootstrap.min.css", type="text/css", media="screen", charset="utf-8"}
+		%link{rel="stylesheet", href="css/main.css", type="text/css", media="screen", charset="utf-8"}
+
+		%script{src="js/json2.js", type="text/javascript", charset="utf-8"}
+		%script{src="js/jquery-1.7.1.min.js", type="text/javascript", charset="utf-8"}
+		%script{src="js/haml.js", type="text/javascript", charset="utf-8"}
+		%script{src="js/underscore-min.js", type="text/javascript", charset="utf-8"}
+		%script{src="js/backbone-min.js", type="text/javascript", charset="utf-8"}
+		%script{src="js/json2.js", type="text/javascript", charset="utf-8"}
+		%script{src="js/main.js", type="text/javascript", charset="utf-8"}
+
+	%body
+		#app.container
+			%table.condensed-table.zebra-striped
+				%thead
+					%tr
+						%th #
+						%th Name
+						%th Artist
+						%th Album
+				%tbody#playlist
