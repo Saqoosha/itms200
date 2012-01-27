@@ -30,7 +30,7 @@
 
   app.get('/playlist/:id/:genreId', function(req, res) {
     return playlist.get(req.params.id, req.params.genreId, function(list) {
-      return res.json(list);
+      return res.send(JSON.stringify(list));
     });
   });
 

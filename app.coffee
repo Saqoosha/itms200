@@ -17,8 +17,7 @@ app.get '/', (req, res) ->
 
 app.get '/playlist/:id/:genreId', (req, res) ->
     playlist.get req.params.id, req.params.genreId, (list) ->
-        res.json list
-
+        res.send JSON.stringify list
 
 app.get '/cover/:search', (req, res) ->
     params = querystring.stringify
