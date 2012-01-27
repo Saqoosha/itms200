@@ -1,18 +1,7 @@
 fs = require 'fs'
 request = require 'request'
 querystring = require 'querystring'
-
-decodeEntity = (text) ->
-    arr = text.match /&#[0-9]{1,5};/g
-    if arr
-        for m in arr
-            c = parseInt m.substr 2
-            if c >= -32768 and c <= 65535
-                text = text.replace m, String.fromCharCode(c)
-            else
-                text = text.replace m, ''
-    return text
-    fs.close fd, callback
+ent = require 'ent'
 
 
 getPlaylist = (id, genreId, callback) ->
@@ -27,7 +16,7 @@ getPlaylist = (id, genreId, callback) ->
             rx = /audio-preview-url="([^"]+)".*?preview-album="([^"]+)".*?preview-artist="([^"]+)".*?preview-title="([^"]+)".*?preview-duration="(\d+)"/g
             list = while hit = rx.exec body
                 duration = Math.floor(parseInt(hit[5]) / 1000)
-                {url: hit[1], album: hit[2], artist: hit[3], title: decodeEntity(hit[4]), duration: Math.floor(parseInt(hit[5]) / 1000)}
+                {url: ent.decode(hit[1]), album: ent.decode(hit[2]), artist: ent.decode(hit[3]), title: ent.decode(hit[4]), duration: Math.floor(parseInt(hit[5]) / 1000)}
             callback?(list)
 
 

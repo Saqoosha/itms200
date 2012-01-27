@@ -4,6 +4,7 @@
     "dependencies": {
         "express": "2.2.0",
         "haml-coffee": "0.6.0",
-        "request": "2.9.3"
+        "request": "2.9.3",
+        "ent": "0.0.4"
     }
 }
