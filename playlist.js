@@ -51,7 +51,6 @@
       })();
       return async.forEachLimit(list, 3, function(item, callback) {
         return exports.getCover(item.playlistId, function(url) {
-          console.log(url);
           item.imageUrl = url;
           return callback();
         });
@@ -69,7 +68,6 @@
 
   exports.getCover = function(id, callback) {
     if (_cache[id] != null) {
-      console.log('hit:', id, _cache[id]);
       return async.nextTick(function() {
         return typeof callback === "function" ? callback(_cache[id]) : void 0;
       });
