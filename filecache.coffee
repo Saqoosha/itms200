@@ -4,10 +4,13 @@ isExpired = (path, expireInSecs = 0) ->
     stat = null
     try
         stat = fs.statSync path
+        console.log stat
     catch error
+        console.log error
         return true
     mtime = new Date(stat.mtime).getTime()
     now = new Date().getTime()
+    console.log mtime, now, now - mtime
     now - mtime > expireInSecs * 1000
     
 getCached = (path, expireInSecs, contentCallback, resultCallback) ->

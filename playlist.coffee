@@ -28,7 +28,7 @@ exports.getPlaylist = (id, genreId, callback) ->
                 , (item, callback) ->
                     # console.log item.itemName, item.playlistId
                     exports.getCover item.playlistId, (url) ->
-                        console.log url
+                        # console.log url
                         item.imageUrl = url
                         callback()
                 , (err) ->
@@ -63,7 +63,6 @@ _cache = {}
 
 exports.getCover = (id, callback) ->
     if _cache[id]?
-        console.log 'hit:', id, _cache[id]
         async.nextTick ->
             callback? _cache[id]
     else
