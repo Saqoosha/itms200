@@ -1,5 +1,5 @@
 (function() {
-  var ent, fs, getPlaylist, querystring, request;
+  var async, ent, fs, jsdom, querystring, request, _cache;
 
   fs = require('fs');
 
@@ -9,7 +9,11 @@
 
   ent = require('ent');
 
-  getPlaylist = function(id, genreId, callback) {
+  jsdom = require('jsdom');
+
+  async = require('async');
+
+  exports.getPlaylist = function(id, genreId, callback) {
     var qs;
     qs = querystring.stringify({
       id: id,
@@ -24,27 +28,60 @@
         'X-Apple-Store-Front': '143462-9,12'
       }
     }, function(error, response, body) {
-      var duration, hit, list, rx;
-      rx = /audio-preview-url="([^"]+)".*?preview-album="([^"]+)".*?preview-artist="([^"]+)".*?preview-title="([^"]+)".*?preview-duration="(\d+)"/g;
+      var data, hit, key, list, pair, prop, tag, value;
+      tag = /<[^>]+?audio-preview-url="[^"]+?("\s[a-z\-]+?=.+)+">/g;
+      pair = /([a-z\-]+)="([^"]+)"/g;
       list = (function() {
-        var _results;
+        var _ref, _results;
         _results = [];
-        while (hit = rx.exec(body)) {
-          duration = Math.floor(parseInt(hit[5]) / 1000);
-          _results.push({
-            url: ent.decode(hit[1]),
-            album: ent.decode(hit[2]),
-            artist: ent.decode(hit[3]),
-            title: ent.decode(hit[4]),
-            duration: Math.floor(parseInt(hit[5]) / 1000)
-          });
+        while (hit = tag.exec(body)) {
+          prop = {};
+          while (data = pair.exec(hit[0])) {
+            prop[data[1]] = ent.decode(data[2]);
+          }
+          _ref = JSON.parse(prop['dnd-clipboard-data']);
+          for (key in _ref) {
+            value = _ref[key];
+            prop[key] = unescape(value);
+          }
+          delete prop['dnd-clipboard-data'];
+          _results.push(prop);
         }
         return _results;
       })();
-      return typeof callback === "function" ? callback(list) : void 0;
+      return async.forEachLimit(list, 5, function(item, callback) {
+        return exports.getCover(item.playlistId, function(url) {
+          console.log(url);
+          item.imageUrl = url;
+          return callback();
+        });
+      }, function(err) {
+        return typeof callback === "function" ? callback(list) : void 0;
+      });
     });
   };
 
-  exports.get = getPlaylist;
+  _cache = {};
+
+  exports.getCover = function(id, callback) {
+    if (_cache[id] != null) {
+      console.log('hit:', id, _cache[id]);
+      return async.nextTick(function() {
+        return typeof callback === "function" ? callback(_cache[id]) : void 0;
+      });
+    } else {
+      return request.get("http://itunes.apple.com/jp/album/id" + id, function(err, res, body) {
+        return jsdom.env({
+          html: body,
+          scripts: ['public/js/jquery-1.7.1.min.js']
+        }, function(err, window) {
+          var src, _ref;
+          src = (_ref = window.jQuery('#left-stack .artwork').html().match(/src="(http[^"]+?)"/)) != null ? _ref[1] : void 0;
+          _cache[id] = src;
+          return typeof callback === "function" ? callback(src) : void 0;
+        });
+      });
+    }
+  };
 
 }).call(this);

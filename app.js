@@ -1,5 +1,5 @@
 (function() {
-  var app, express, hamlc, playlist, port, querystring, request;
+  var app, async, express, filecache, hamlc, playlist, port, querystring, request;
 
   express = require('express');
 
@@ -9,7 +9,11 @@
 
   querystring = require('querystring');
 
+  async = require('async');
+
   playlist = require('./playlist');
+
+  filecache = require('./filecache');
 
   app = express.createServer();
 
@@ -29,30 +33,35 @@
   });
 
   app.get('/playlist/:id/:genreId', function(req, res) {
-    return playlist.get(req.params.id, req.params.genreId, function(list) {
-      return res.send(JSON.stringify(list));
+    return filecache.getCached("tmp/playlist-" + req.params.id + "-" + req.params.genreId, 900, function(callback) {
+      return playlist.getPlaylist(req.params.id, req.params.genreId, function(list) {
+        return callback(JSON.stringify(list));
+      });
+    }, function(cached, result) {
+      return res.send(result);
     });
   });
 
-  app.get('/cover/:query', function(req, res) {
-    var params;
-    params = querystring.stringify({
-      term: req.params.query,
-      media: 'music',
-      country: 'JP',
-      limit: '1',
-      lang: 'ja_jp'
+  app.get('/cover/:id', function(req, res) {
+    return playlist.getCover(req.params.id, function(imageUrl) {
+      return res.redirect(imageUrl || '/images/no-cover.gif');
     });
-    return request.get("http://ax.phobos.apple.com.edgesuite.net/WebObjects/MZStoreServices.woa/wa/wsSearch?" + params, function(error, response, body) {
-      var data, imageUrl, _ref, _ref2;
-      imageUrl = '/images/no-cover.gif';
-      if (response.statusCode === 200) {
-        data = JSON.parse(body);
-        if ((data != null ? (_ref = data.results) != null ? (_ref2 = _ref[0]) != null ? _ref2.artworkUrl100 : void 0 : void 0 : void 0) != null) {
-          imageUrl = data.results[0].artworkUrl100;
-        }
-      }
-      return res.redirect(imageUrl);
+  });
+
+  app.get('/cover_/:artist/:album/:title', function(req, res) {
+    var imageUrl, queries;
+    queries = [req.params.artist + ' ' + req.params.album, req.params.artist + ' ' + req.params.title, req.params.album];
+    imageUrl = null;
+    return async.whilst(function() {
+      return queries.length > 0 && imageUrl === null;
+    }, function(callback) {
+      return playlist.getCover(queries.shift(), function(url) {
+        imageUrl = url;
+        return callback(url);
+      });
+    }, function(result) {
+      if (result == null) result = '/images/no-cover.gif';
+      return res.redirect(result);
     });
   });
 

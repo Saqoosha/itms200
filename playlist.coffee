@@ -2,9 +2,10 @@ fs = require 'fs'
 request = require 'request'
 querystring = require 'querystring'
 ent = require 'ent'
+jsdom = require 'jsdom'
+async = require 'async'
 
-
-getPlaylist = (id, genreId, callback) ->
+exports.getPlaylist = (id, genreId, callback) ->
     qs = querystring.stringify id: id, genreId: genreId, popId: 1
     request
         url: "http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewTop?#{qs}"
@@ -13,11 +14,72 @@ getPlaylist = (id, genreId, callback) ->
             'Accept-Language': 'ja-jp'
             'X-Apple-Store-Front': '143462-9,12'
         , (error, response, body) ->
-            rx = /audio-preview-url="([^"]+)".*?preview-album="([^"]+)".*?preview-artist="([^"]+)".*?preview-title="([^"]+)".*?preview-duration="(\d+)"/g
-            list = while hit = rx.exec body
-                duration = Math.floor(parseInt(hit[5]) / 1000)
-                {url: ent.decode(hit[1]), album: ent.decode(hit[2]), artist: ent.decode(hit[3]), title: ent.decode(hit[4]), duration: Math.floor(parseInt(hit[5]) / 1000)}
-            callback?(list)
+            tag = /<[^>]+?audio-preview-url="[^"]+?("\s[a-z\-]+?=.+)+">/g
+            pair = /([a-z\-]+)="([^"]+)"/g
+            list = while hit = tag.exec body
+                prop = {}
+                while data = pair.exec hit[0]
+                    prop[data[1]] = ent.decode data[2]
+                for key, value of JSON.parse prop['dnd-clipboard-data']
+                    prop[key] = unescape value
+                delete prop['dnd-clipboard-data']
+                prop
+            async.forEachLimit list, 5
+                , (item, callback) ->
+                    # console.log item.itemName, item.playlistId
+                    exports.getCover item.playlistId, (url) ->
+                        console.log url
+                        item.imageUrl = url
+                        callback()
+                , (err) ->
+                    callback?(list)
 
 
-exports.get = getPlaylist
+# getCover = (query, callback) ->
+#     params = querystring.stringify
+#         term: query
+#         media: 'music'
+#         country: 'JP'
+#         limit: '1'
+#         lang: 'ja_jp'
+#     request.get "http://ax.phobos.apple.com.edgesuite.net/WebObjects/MZStoreServices.woa/wa/wsSearch?#{params}", (error, response, body) ->
+#         if response.statusCode isnt 200 then callback null
+#         data = JSON.parse body
+#         if data.resultCount > 0 and data.results[0].artworkUrl100?
+#             url100 = data.results[0].artworkUrl100
+#             url170 = url100.replace '100x100', '170x170'
+#             request.head url170, (error, response, body) ->
+#                 if response.statusCode is 200
+#                     callback url170
+#                 else
+#                     callback url100
+#         else
+#             callback null
+
+
+_cache = {}
+
+exports.getCover = (id, callback) ->
+    if _cache[id]?
+        console.log 'hit:', id, _cache[id]
+        async.nextTick ->
+            callback? _cache[id]
+    else
+        request.get "http://itunes.apple.com/jp/album/id#{id}", (err, res, body) ->
+            jsdom.env
+                html: body
+                scripts: ['public/js/jquery-1.7.1.min.js']
+                , (err, window) ->
+                    src = window.jQuery('#left-stack .artwork').html().match(/src="(http[^"]+?)"/)?[1]
+                    _cache[id] = src
+                    callback? src
+
+
+# exports.get = getPlaylist
+# exports.getCover = getCover
+# exports.getCover2 = getCover2
+
+
+
+
+

@@ -2,7 +2,9 @@ express = require 'express'
 hamlc = require 'haml-coffee'
 request = require 'request'
 querystring = require 'querystring'
+async = require 'async'
 playlist = require './playlist'
+filecache = require './filecache'
 
 app = express.createServer()
 app.use express.static __dirname + '/public'
@@ -15,24 +17,34 @@ app.get '/', (req, res) ->
     res.render 'index'
 
 app.get '/playlist/:id/:genreId', (req, res) ->
-    playlist.get req.params.id, req.params.genreId, (list) ->
-        res.send JSON.stringify list
+    filecache.getCached "tmp/playlist-#{req.params.id}-#{req.params.genreId}", 900
+        , (callback) ->
+            playlist.getPlaylist req.params.id, req.params.genreId, (list) ->
+                callback JSON.stringify list
+        , (cached, result) ->
+            res.send result
 
-app.get '/cover/:query', (req, res) ->
-    params = querystring.stringify
-        term: req.params.query
-        media: 'music'
-        country: 'JP'
-        limit: '1'
-        lang: 'ja_jp'
-    request.get "http://ax.phobos.apple.com.edgesuite.net/WebObjects/MZStoreServices.woa/wa/wsSearch?#{params}", (error, response, body) ->
-        imageUrl = '/images/no-cover.gif'
-        if response.statusCode is 200
-            data = JSON.parse body
-            if data?.results?[0]?.artworkUrl100?
-                imageUrl = data.results[0].artworkUrl100
-        res.redirect imageUrl
+app.get '/cover/:id', (req, res) ->
+    playlist.getCover req.params.id, (imageUrl) ->
+        res.redirect (imageUrl or '/images/no-cover.gif')
     
+app.get '/cover_/:artist/:album/:title', (req, res) ->
+    queries = [
+        req.params.artist + ' ' + req.params.album
+        req.params.artist + ' ' + req.params.title
+        req.params.album
+        ]
+
+    imageUrl = null
+    async.whilst ->
+            queries.length > 0 and imageUrl is null
+        , (callback) ->
+            playlist.getCover queries.shift(), (url) ->
+                imageUrl = url
+                callback url
+        , (result) ->
+            result ?= '/images/no-cover.gif'
+            res.redirect result
 
 port = process.env.PORT or 3000
 app.listen port, ->

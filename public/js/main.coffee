@@ -60,7 +60,7 @@ $ ->
         play: =>
             @player = new MusicPlayer
             @player.bind 'all', (e) => @trigger.apply @, [e, @]
-            @player.play @get 'url'
+            @player.play @get 'audio-preview-url'
         
         
     class TrackView extends Backbone.View
@@ -68,12 +68,11 @@ $ ->
         tagName: 'tr'
 
         template: Haml """
-            - var index = order + 1
-            - var imgurl = '/cover/' + album.replace('/', '%2F') + ' ' + title
-            %td %img(src=imgurl)
-            %td &= title
-            %td &= artist
-            %td &= album
+            %td %img(src=imageUrl)
+            %td &= itemName
+            %td &= artistName
+            %td
+                %a(href=url) &= playlistName
         """
         
         events:
@@ -102,6 +101,7 @@ $ ->
         
         model: Track
         url: '/playlist/1000/34'
+        # url: '/playlist/1006/11'
     
 
     class AppView extends Backbone.View

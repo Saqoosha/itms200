@@ -103,7 +103,7 @@
         this.player.bind('all', function(e) {
           return _this.trigger.apply(_this, [e, _this]);
         });
-        return this.player.play(this.get('url'));
+        return this.player.play(this.get('audio-preview-url'));
       };
 
       return Track;
@@ -123,7 +123,7 @@
 
       TrackView.prototype.tagName = 'tr';
 
-      TrackView.prototype.template = Haml("- var index = order + 1\n- var imgurl = '/cover/' + album.replace('/', '%2F') + ' ' + title\n%td %img(src=imgurl)\n%td &= title\n%td &= artist\n%td &= album");
+      TrackView.prototype.template = Haml("%td %img(src=imageUrl)\n%td &= itemName\n%td &= artistName\n%td\n    %a(href=url) &= playlistName");
 
       TrackView.prototype.events = {
         'click': 'play'
