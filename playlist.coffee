@@ -24,7 +24,7 @@ exports.getPlaylist = (id, genreId, callback) ->
                     prop[key] = unescape value
                 delete prop['dnd-clipboard-data']
                 prop
-            async.forEachLimit list, 5
+            async.forEachLimit list, 3
                 , (item, callback) ->
                     # console.log item.itemName, item.playlistId
                     exports.getCover item.playlistId, (url) ->
@@ -57,6 +57,8 @@ exports.getPlaylist = (id, genreId, callback) ->
 #             callback null
 
 
+document = jsdom.jsdom '<html><body>'
+window = document.createWindow()
 _cache = {}
 
 exports.getCover = (id, callback) ->
@@ -73,6 +75,8 @@ exports.getCover = (id, callback) ->
                     src = window.jQuery('#left-stack .artwork').html().match(/src="(http[^"]+?)"/)?[1]
                     _cache[id] = src
                     callback? src
+                    async.nextTick ->
+                        window.close()
 
 
 # exports.get = getPlaylist

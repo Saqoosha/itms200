@@ -1,5 +1,5 @@
 (function() {
-  var async, ent, fs, jsdom, querystring, request, _cache;
+  var async, document, ent, fs, jsdom, querystring, request, window, _cache;
 
   fs = require('fs');
 
@@ -49,7 +49,7 @@
         }
         return _results;
       })();
-      return async.forEachLimit(list, 5, function(item, callback) {
+      return async.forEachLimit(list, 3, function(item, callback) {
         return exports.getCover(item.playlistId, function(url) {
           console.log(url);
           item.imageUrl = url;
@@ -60,6 +60,10 @@
       });
     });
   };
+
+  document = jsdom.jsdom('<html><body>');
+
+  window = document.createWindow();
 
   _cache = {};
 
@@ -78,7 +82,10 @@
           var src, _ref;
           src = (_ref = window.jQuery('#left-stack .artwork').html().match(/src="(http[^"]+?)"/)) != null ? _ref[1] : void 0;
           _cache[id] = src;
-          return typeof callback === "function" ? callback(src) : void 0;
+          if (typeof callback === "function") callback(src);
+          return async.nextTick(function() {
+            return window.close();
+          });
         });
       });
     }
