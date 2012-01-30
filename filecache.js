@@ -22,12 +22,14 @@
 
   getCached = function(path, expireInSecs, contentCallback, resultCallback) {
     if (isExpired(path, expireInSecs)) {
+      console.log('generate content');
       return contentCallback(function(result) {
         return fs.writeFile(path, result, 'utf-8', function(err) {
           return resultCallback(false, result);
         });
       });
     } else {
+      console.log('use cache');
       return fs.readFile(path, 'utf-8', function(err, data) {
         return resultCallback(true, data);
       });

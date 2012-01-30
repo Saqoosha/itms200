@@ -15,10 +15,12 @@ isExpired = (path, expireInSecs = 0) ->
     
 getCached = (path, expireInSecs, contentCallback, resultCallback) ->
     if isExpired path, expireInSecs
+        console.log 'generate content'
         contentCallback (result) ->
             fs.writeFile path, result, 'utf-8', (err) ->
                 resultCallback false, result
     else
+        console.log 'use cache'
         fs.readFile path, 'utf-8', (err, data) ->
             resultCallback true, data
 
