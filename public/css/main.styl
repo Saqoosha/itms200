@@ -1,0 +1,100 @@
+*
+    margin 0
+    padding 0
+
+
+body
+    background #000 url(/images/checker.gif) 0 40px
+    padding-top 40px
+
+
+.navbar-inner .container
+    width 100%
+
+
+.navbar-fixed-top .brand
+    margin-left 0
+    font-weight bold
+    color black
+    text-shadow 0 1px 0 rgba(255, 255, 255, .1), 0 0 30px rgba(255, 255, 255, .125)
+
+
+.volume
+    float right
+    
+    &>.hoge
+        padding 10px 0 11px
+        line-height 19px
+        color #999
+        text-shadow 0 -1px 0 rgba(0, 0, 0, 0.25)
+
+    &:hover>.hoge
+        color white
+
+    &>input
+        margin 0 20px 0 5px
+        padding 0
+        border 0
+        width 150px
+        height 40px
+    
+
+.playlist
+    width 100%
+
+
+.cover
+    width 150px
+    height 150px
+    float left
+    position relative
+    overflow hidden
+
+    &>.black
+        display table
+        padding 5px
+        position absolute
+        top 0px
+        left 0px
+        width 150px
+        height 150px
+        color white
+        font-family 'Nunito', 'HiraMaruPro-W4', sans-serif
+        text-align center
+        background-color rgba(0, 0, 0, 0.5)
+        
+        &>.info
+            display table-cell
+            vertical-align middle
+
+            &>.title
+                margin-bottom 3px
+            
+            &>.artist
+                margin-bottom 10px
+        
+        &>.rank
+            background-color rgba(255, 0, 0, 0.5)
+            width 100px
+            height 30px
+            text-align center
+            line-height 40px
+            position absolute
+            top 0
+            left 0
+            -webkit-transform-origin: 50px 0
+            -webkit-transform: translate(-50px,0) rotate(-45deg)
+
+
+
+
+
+
+
+
+
+
+
+
+
+

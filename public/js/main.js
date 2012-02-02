@@ -4,7 +4,7 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   $(function() {
-    var AppView, Easing, MusicPlayer, Playlist, Track, TrackView;
+    var Easing, MusicPlayer, Playlist, PlaylistView, Track, TrackView, VolumeSlider, p;
     Easing = (function() {
 
       function Easing() {}
@@ -21,6 +21,26 @@
       };
 
       return Easing;
+
+    })();
+    VolumeSlider = (function() {
+
+      function VolumeSlider() {}
+
+      VolumeSlider.volume = 0;
+
+      VolumeSlider.init = function(el) {
+        var v;
+        v = $.cookie('volume') || 0.8;
+        VolumeSlider.volume = v;
+        el.val(v * 100);
+        return el.on('change', function() {
+          VolumeSlider.volume = el.val() / 100;
+          return $.cookie('volume', VolumeSlider.volume);
+        });
+      };
+
+      return VolumeSlider;
 
     })();
     MusicPlayer = (function() {
@@ -72,12 +92,10 @@
         current = this.audio.currentTime;
         if (current < FADE_DURATION) {
           v = Math.max(0, current / FADE_DURATION);
-          v = Easing.expoEaseOut(v);
         } else if (this.audio.duration - current < FADE_DURATION) {
           v = Math.max(0, (this.audio.duration - current) / FADE_DURATION);
-          v = Easing.expoEaseOut(v);
         }
-        return this.audio.volume = v;
+        return this.audio.volume = Easing.expoEaseOut(v * VolumeSlider.volume);
       };
 
       MusicPlayer.prototype.onEnded = function() {
@@ -103,7 +121,7 @@
         this.player.bind('all', function(e) {
           return _this.trigger.apply(_this, [e, _this]);
         });
-        return this.player.play(this.get('audio-preview-url'));
+        return this.player.play(this.get('audioUrl'));
       };
 
       return Track;
@@ -116,32 +134,72 @@
       function TrackView() {
         this.onStop = __bind(this.onStop, this);
         this.onStart = __bind(this.onStart, this);
-        this.play = __bind(this.play, this);
+        this.onClick = __bind(this.onClick, this);
+        this.onMouseLeave = __bind(this.onMouseLeave, this);
+        this.onMouseEnter = __bind(this.onMouseEnter, this);
+        this.onImageLoaded = __bind(this.onImageLoaded, this);
         this.render = __bind(this.render, this);
         TrackView.__super__.constructor.apply(this, arguments);
       }
 
-      TrackView.prototype.tagName = 'tr';
+      TrackView.prototype.tagName = 'div';
 
-      TrackView.prototype.template = Haml("%td %img(src=imageUrl)\n%td &= itemName\n%td &= artistName\n%td\n    %a(href=url) &= playlistName");
+      TrackView.prototype.className = 'cover';
+
+      TrackView.prototype.template = Haml("%img(src=imageUrl)\n.black\n    .info\n        .title &= itemName\n        .artist &= artistName\n        %a.itunes(href=storeUrl target=\"_blank\")\n            %img.badge(src=\"/images/badge_itunes-sm.gif\")\n    .rank = rank");
 
       TrackView.prototype.events = {
-        'click': 'play'
+        'mouseenter': 'onMouseEnter',
+        'mouseleave': 'onMouseLeave'
       };
 
       TrackView.prototype.initialize = function() {
         this.model.view = this;
         this.model.bind('start', this.onStart);
-        return this.model.bind('stop', this.onStop);
+        this.model.bind('stop', this.onStop);
+        return this.el = $(this.el);
       };
 
       TrackView.prototype.render = function() {
-        $(this.el).html(this.template(this.model.toJSON()));
+        var data;
+        data = this.model.toJSON();
+        data.storeUrl = "http://itunes.apple.com/jp/album/id" + data.playlistId + "?i=" + data.itemId;
+        data.rank = data.order + 1;
+        this.el.html(this.template(data));
+        this.image = $('>img', this.el);
+        this.image.load(this.onImageLoaded);
+        this.black = $('.black', this.el);
+        this.black.click(this.onClick);
+        this.black.hide();
         return this;
       };
 
-      TrackView.prototype.play = function() {
-        return this.model.play();
+      TrackView.prototype.onImageLoaded = function(e) {
+        var h, img, s, w;
+        img = e.target;
+        w = img.width;
+        h = img.height;
+        s = 150 / Math.min(w, h);
+        w *= s;
+        h *= s;
+        return $(img).css({
+          width: w,
+          height: h,
+          left: (150 - w) / 2 + 'px',
+          top: (150 - h) / 2 + 'px'
+        });
+      };
+
+      TrackView.prototype.onMouseEnter = function(e) {
+        return this.black.fadeIn(300);
+      };
+
+      TrackView.prototype.onMouseLeave = function(e) {
+        return this.black.fadeOut(300);
+      };
+
+      TrackView.prototype.onClick = function(e) {
+        if (e.target.className !== 'badge') return this.model.play();
       };
 
       TrackView.prototype.onStart = function() {
@@ -165,32 +223,33 @@
 
       Playlist.prototype.model = Track;
 
-      Playlist.prototype.url = '/playlist/1000/34';
-
       return Playlist;
 
     })(Backbone.Collection);
-    AppView = (function(_super) {
+    PlaylistView = (function(_super) {
 
-      __extends(AppView, _super);
+      __extends(PlaylistView, _super);
 
-      function AppView() {
+      function PlaylistView() {
         this.onPlayComplete = __bind(this.onPlayComplete, this);
         this.addAll = __bind(this.addAll, this);
         this.addOne = __bind(this.addOne, this);
-        AppView.__super__.constructor.apply(this, arguments);
+        PlaylistView.__super__.constructor.apply(this, arguments);
       }
 
-      AppView.prototype.id = 'app';
+      PlaylistView.prototype.tagName = 'div';
 
-      AppView.prototype.initialize = function() {
+      PlaylistView.prototype.className = 'playlist';
+
+      PlaylistView.prototype.initialize = function(id, genreId) {
         this.playlist = new Playlist;
+        this.playlist.url = "/playlist/" + id + "/" + genreId;
         this.playlist.bind('add', this.addOne);
         this.playlist.bind('reset', this.addAll);
         return this.playlist.fetch();
       };
 
-      AppView.prototype.addOne = function(track, index) {
+      PlaylistView.prototype.addOne = function(track, index) {
         var view;
         track.set({
           order: index
@@ -199,24 +258,27 @@
         view = new TrackView({
           model: track
         });
-        return $('#playlist').append(view.render().el);
+        return $(this.el).append(view.render().el);
       };
 
-      AppView.prototype.addAll = function() {
-        return this.playlist.each(this.addOne);
+      PlaylistView.prototype.addAll = function() {
+        this.playlist.each(this.addOne);
+        return console.log(this.playlist.length);
       };
 
-      AppView.prototype.onPlayComplete = function(track) {
+      PlaylistView.prototype.onPlayComplete = function(track) {
         var next, order;
         order = track.get('order');
         next = this.playlist.at(order + 1);
         return next != null ? next.play() : void 0;
       };
 
-      return AppView;
+      return PlaylistView;
 
     })(Backbone.View);
-    return new AppView;
+    VolumeSlider.init($('#volume'));
+    p = new PlaylistView(1000, 34);
+    return $('body').append(p.el);
   });
 
 }).call(this);

@@ -3,6 +3,19 @@ $ ->
     class Easing
         @expoEaseOut: (t, b = 0, c = 1, d = 1) ->
             if t == 0 then b else c * Math.pow(2, 10 * (t / d - 1)) + b - c * 0.001
+            
+            
+    class VolumeSlider
+        
+        @volume = 0
+        
+        @init: (el) ->
+            v = $.cookie('volume') or 0.8
+            VolumeSlider.volume = v
+            el.val v * 100
+            el.on 'change', ->
+                VolumeSlider.volume = el.val() / 100
+                $.cookie 'volume', VolumeSlider.volume
 
 
     class MusicPlayer
@@ -44,11 +57,9 @@ $ ->
             current = @audio.currentTime
             if current < FADE_DURATION
                 v = Math.max 0, current / FADE_DURATION
-                v = Easing.expoEaseOut v
             else if @audio.duration - current < FADE_DURATION
                 v = Math.max 0, (@audio.duration - current) / FADE_DURATION
-                v = Easing.expoEaseOut v
-            @audio.volume = v
+            @audio.volume = Easing.expoEaseOut(v * VolumeSlider.volume)
         
         onEnded: =>
             @stop()
@@ -60,35 +71,69 @@ $ ->
         play: =>
             @player = new MusicPlayer
             @player.bind 'all', (e) => @trigger.apply @, [e, @]
-            @player.play @get 'audio-preview-url'
+            @player.play @get 'audioUrl'
         
         
     class TrackView extends Backbone.View
         
-        tagName: 'tr'
+        tagName: 'div'
+        className: 'cover'
 
         template: Haml """
-            %td %img(src=imageUrl)
-            %td &= itemName
-            %td &= artistName
-            %td
-                %a(href=url) &= playlistName
+            %img(src=imageUrl)
+            .black
+                .info
+                    .title &= itemName
+                    .artist &= artistName
+                    %a.itunes(href=storeUrl target="_blank")
+                        %img.badge(src="/images/badge_itunes-sm.gif")
+                .rank = rank
         """
         
         events:
-            'click': 'play'
+            'mouseenter': 'onMouseEnter'
+            'mouseleave': 'onMouseLeave'
+            # 'click': 'onClick'
         
         initialize: ->
             @model.view = this
             @model.bind 'start', @onStart
             @model.bind 'stop', @onStop
+            @el = $(@el)
         
         render: =>
-            $(@el).html @template @model.toJSON()
+            data = @model.toJSON()
+            data.storeUrl = "http://itunes.apple.com/jp/album/id#{data.playlistId}?i=#{data.itemId}"
+            data.rank = data.order + 1
+            @el.html @template data
+            @image = $('>img', @el)
+            @image.load @onImageLoaded
+            @black = $('.black', @el)
+            @black.click @onClick
+            @black.hide()
             return this
         
-        play: =>
-            @model.play()
+        onImageLoaded: (e) =>
+            img = e.target
+            w = img.width
+            h = img.height
+            s = 150 / Math.min(w, h)
+            w *= s
+            h *= s
+            $(img).css
+                width: w
+                height: h
+                left: (150 - w) / 2 + 'px'
+                top: (150 - h) / 2 + 'px'
+        
+        onMouseEnter: (e) =>
+            @black.fadeIn(300)
+        
+        onMouseLeave: (e) =>
+            @black.fadeOut(300)
+        
+        onClick: (e) =>
+            @model.play() if e.target.className isnt 'badge'
         
         onStart: =>
             $(@el).addClass 'playing'
@@ -100,16 +145,16 @@ $ ->
     class Playlist extends Backbone.Collection
         
         model: Track
-        url: '/playlist/1000/34'
-        # url: '/playlist/1006/11'
-    
+        
 
-    class AppView extends Backbone.View
+    class PlaylistView extends Backbone.View
         
-        id: 'app'
+        tagName: 'div'
+        className: 'playlist'
         
-        initialize: ->
+        initialize: (id, genreId) ->
             @playlist = new Playlist
+            @playlist.url = "/playlist/#{id}/#{genreId}"
             @playlist.bind 'add', @addOne
             @playlist.bind 'reset', @addAll
             @playlist.fetch()
@@ -118,10 +163,11 @@ $ ->
             track.set order: index
             track.bind 'complete', @onPlayComplete
             view = new TrackView model: track
-            $('#playlist').append view.render().el
+            $(@el).append view.render().el
         
         addAll: =>
             @playlist.each @addOne
+            console.log @playlist.length
             
         onPlayComplete: (track) =>
             order = track.get 'order'
@@ -129,4 +175,6 @@ $ ->
             next?.play()
             
 
-    new AppView
+    VolumeSlider.init($('#volume'))
+    p = new PlaylistView 1000, 34
+    $('body').append p.el

@@ -44,8 +44,14 @@
             value = _ref[key];
             prop[key] = unescape(value);
           }
-          delete prop['dnd-clipboard-data'];
-          _results.push(prop);
+          _results.push({
+            artistName: prop['artistName'],
+            playlistName: prop['playlistName'],
+            playlistId: prop['playlistId'],
+            itemName: prop['itemName'],
+            itemId: prop['itemId'],
+            audioUrl: prop['audio-preview-url']
+          });
         }
         return _results;
       })();

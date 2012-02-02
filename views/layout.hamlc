@@ -1,5 +1,0 @@
-!!!
-%head
-	%title Express App
-%body
-	!= @body
