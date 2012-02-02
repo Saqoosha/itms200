@@ -15,7 +15,7 @@ exports.getPlaylist = (id, genreId, callback) ->
             'Accept-Language': 'ja-jp'
             'X-Apple-Store-Front': '143462-9,12'
         , (error, response, body) ->
-            tag = /<[^>]+?audio-preview-url="[^"]+?("\s[a-z\-]+?=.+)+">/g
+            tag = /<[^>]+?audio-preview-url="[^"]+?("\s[a-z\-]+?=(.|[\r\n])+?)+">/g
             pair = /([a-z\-]+)="([^"]+)"/g
             list = while hit = tag.exec body
                 prop = {}

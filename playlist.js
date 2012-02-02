@@ -29,7 +29,7 @@
       }
     }, function(error, response, body) {
       var data, hit, key, list, pair, prop, tag, value;
-      tag = /<[^>]+?audio-preview-url="[^"]+?("\s[a-z\-]+?=.+)+">/g;
+      tag = /<[^>]+?audio-preview-url="[^"]+?("\s[a-z\-]+?=(.|[\r\n])+?)+">/g;
       pair = /([a-z\-]+)="([^"]+)"/g;
       list = (function() {
         var _ref, _results;
