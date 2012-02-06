@@ -103,6 +103,7 @@ $ ->
         
         render: =>
             data = @model.toJSON()
+            data.imageUrl ?= '/images/no-cover.png';
             data.storeUrl = "http://itunes.apple.com/jp/album/id#{data.playlistId}?i=#{data.itemId}"
             data.rank = data.order + 1
             @el.html @template data

@@ -1,5 +1,5 @@
 (function() {
-  var async, document, ent, fs, jsdom, querystring, request, window, _cache;
+  var async, ent, fs, querystring, request, _cache;
 
   fs = require('fs');
 
@@ -8,8 +8,6 @@
   querystring = require('querystring');
 
   ent = require('ent');
-
-  jsdom = require('jsdom');
 
   async = require('async');
 
@@ -55,7 +53,7 @@
         }
         return _results;
       })();
-      return async.forEachLimit(list, 3, function(item, callback) {
+      return async.forEachLimit(list, 5, function(item, callback) {
         return exports.getCover(item.playlistId, function(url) {
           item.imageUrl = url;
           return callback();
@@ -66,10 +64,6 @@
     });
   };
 
-  document = jsdom.jsdom('<html><body>');
-
-  window = document.createWindow();
-
   _cache = {};
 
   exports.getCover = function(id, callback) {
@@ -79,18 +73,14 @@
       });
     } else {
       return request.get("http://itunes.apple.com/jp/album/id" + id, function(err, res, body) {
-        return jsdom.env({
-          html: body,
-          scripts: ['public/js/jquery-1.7.1.min.js']
-        }, function(err, window) {
-          var src, _ref;
-          src = (_ref = window.jQuery('#left-stack .artwork').html().match(/src="(http[^"]+?)"/)) != null ? _ref[1] : void 0;
-          _cache[id] = src;
-          if (typeof callback === "function") callback(src);
-          return async.nextTick(function() {
-            return window.close();
-          });
-        });
+        var match;
+        match = body.match(/http:\/\/a\d.mzstatic.com\/.*?\.170x170-75\.jpg/g);
+        if (match != null) {
+          _cache[id] = match[0];
+          return typeof callback === "function" ? callback(match[0]) : void 0;
+        } else {
+          return typeof callback === "function" ? callback(null) : void 0;
+        }
       });
     }
   };

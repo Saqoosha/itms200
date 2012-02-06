@@ -2,7 +2,6 @@ fs = require 'fs'
 request = require 'request'
 querystring = require 'querystring'
 ent = require 'ent'
-jsdom = require 'jsdom'
 async = require 'async'
 
 
@@ -31,7 +30,7 @@ exports.getPlaylist = (id, genreId, callback) ->
                     itemId: prop['itemId']
                     audioUrl: prop['audio-preview-url']
                 }
-            async.forEachLimit list, 3
+            async.forEachLimit list, 5
                 , (item, callback) ->
                     exports.getCover item.playlistId, (url) ->
                         item.imageUrl = url
@@ -40,22 +39,23 @@ exports.getPlaylist = (id, genreId, callback) ->
                     callback?(list)
 
 
-document = jsdom.jsdom '<html><body>'
-window = document.createWindow()
 _cache = {}
 
 exports.getCover = (id, callback) ->
     if _cache[id]?
-        async.nextTick ->
-            callback? _cache[id]
+        async.nextTick -> callback? _cache[id]
     else
         request.get "http://itunes.apple.com/jp/album/id#{id}", (err, res, body) ->
-            jsdom.env
-                html: body
-                scripts: ['public/js/jquery-1.7.1.min.js']
-                , (err, window) ->
-                    src = window.jQuery('#left-stack .artwork').html().match(/src="(http[^"]+?)"/)?[1]
-                    _cache[id] = src
-                    callback? src
-                    async.nextTick ->
-                        window.close()
+            match = body.match /http:\/\/a\d.mzstatic.com\/.*?\.170x170-75\.jpg/g
+            if match?
+                _cache[id] = match[0]
+                callback? match[0]
+            else
+                callback? null
+
+
+
+
+
+
+
