@@ -1,5 +1,5 @@
 (function() {
-  var async, ent, fs, querystring, request, _cache;
+  var async, covers, ent, fs, nstore, querystring, request;
 
   fs = require('fs');
 
@@ -10,6 +10,8 @@
   ent = require('ent');
 
   async = require('async');
+
+  nstore = require('nstore');
 
   exports.getPlaylist = function(id, genreId, callback) {
     var qs;
@@ -64,25 +66,30 @@
     });
   };
 
-  _cache = {};
+  covers = nstore["new"]('tmp/covers.data', function() {
+    return console.log('db ready');
+  });
 
   exports.getCover = function(id, callback) {
-    if (_cache[id] != null) {
-      return async.nextTick(function() {
-        return typeof callback === "function" ? callback(_cache[id]) : void 0;
-      });
-    } else {
-      return request.get("http://itunes.apple.com/jp/album/id" + id, function(err, res, body) {
-        var match;
-        match = body.match(/http:\/\/a\d.mzstatic.com\/.*?\.170x170-75\.jpg/g);
-        if (match != null) {
-          _cache[id] = match[0];
-          return typeof callback === "function" ? callback(match[0]) : void 0;
-        } else {
-          return typeof callback === "function" ? callback(null) : void 0;
-        }
-      });
-    }
+    return covers.get(id, function(err, doc, key) {
+      if (!err) {
+        return callback(doc.url);
+      } else {
+        return request.get("http://itunes.apple.com/jp/album/id" + id, function(err, res, body) {
+          var match;
+          match = body.match(/http:\/\/a\d.mzstatic.com\/.*?\.170x170-75\.jpg/g);
+          if (match != null) {
+            return covers.save(id, {
+              url: match[0]
+            }, function(err) {
+              return callback(match[0]);
+            });
+          } else {
+            return callback(null);
+          }
+        });
+      }
+    });
   };
 
 }).call(this);

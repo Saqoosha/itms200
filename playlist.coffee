@@ -3,6 +3,7 @@ request = require 'request'
 querystring = require 'querystring'
 ent = require 'ent'
 async = require 'async'
+nstore = require 'nstore'
 
 
 exports.getPlaylist = (id, genreId, callback) ->
@@ -39,19 +40,20 @@ exports.getPlaylist = (id, genreId, callback) ->
                     callback?(list)
 
 
-_cache = {}
+covers = nstore.new 'tmp/covers.data', -> console.log 'db ready'
 
 exports.getCover = (id, callback) ->
-    if _cache[id]?
-        async.nextTick -> callback? _cache[id]
-    else
-        request.get "http://itunes.apple.com/jp/album/id#{id}", (err, res, body) ->
-            match = body.match /http:\/\/a\d.mzstatic.com\/.*?\.170x170-75\.jpg/g
-            if match?
-                _cache[id] = match[0]
-                callback? match[0]
-            else
-                callback? null
+    covers.get id, (err, doc, key) ->
+        if not err
+            callback doc.url
+        else
+            request.get "http://itunes.apple.com/jp/album/id#{id}", (err, res, body) ->
+                match = body.match /http:\/\/a\d.mzstatic.com\/.*?\.170x170-75\.jpg/g
+                if match?
+                    covers.save id, url: match[0], (err) ->
+                        callback match[0]
+                else
+                    callback null
 
 
 
