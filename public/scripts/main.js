@@ -14,71 +14,71 @@
       id: 1024,
       genreId: 27
     }, {
-      name: 'Alternative',
+      name: 'オルタナティブ',
       id: 1015,
       genreId: 20
     }, {
-      name: 'Anime',
+      name: 'アニメ',
       id: 27743,
       genreId: 29
     }, {
-      name: 'Blues',
+      name: 'ブルース',
       id: 1001,
       genreId: 2
     }, {
-      name: 'Classical',
+      name: 'クラシック',
       id: 1002,
       genreId: 5
     }, {
-      name: 'Dance',
+      name: 'ダンス',
       id: 1012,
       genreId: 17
     }, {
-      name: 'Electronic',
+      name: 'エレクトロニック',
       id: 1004,
       genreId: 7
     }, {
-      name: 'Fitness & Workout',
+      name: 'フィットネス／エクササイズ',
       id: 27800,
       genreId: 50
     }, {
-      name: 'Hip Hop/Rap',
+      name: 'ヒップホップ／ラップ',
       id: 1013,
       genreId: 18
     }, {
-      name: 'Jazz',
+      name: 'ジャズ',
       id: 1006,
       genreId: 11
     }, {
-      name: 'Kayokyoku',
+      name: '歌謡曲',
       id: 1025,
       genreId: 30
     }, {
-      name: 'Pop',
+      name: 'ポップ',
       id: 1009,
       genreId: 14
     }, {
-      name: 'R&B/Soul',
+      name: 'R&B／ソウル',
       id: 1010,
       genreId: 15
     }, {
-      name: 'Reggae',
+      name: 'レゲエ',
       id: 1031,
       genreId: 24
     }, {
-      name: 'Rock',
+      name: 'ロック',
       id: 1017,
       genreId: 21
     }, {
-      name: 'Soundtrack',
+      name: 'サウンドトラック',
       id: 1011,
       genreId: 16
     }, {
-      name: 'Vocal',
+      name: 'ヴォーカル',
       id: 1016,
       genreId: 23
     }, {
-      name: 'World',
+      name: 'ワールド',
       id: 1014,
       genreId: 19
     }
@@ -489,7 +489,8 @@
       this.current = new PlaylistView(data.id, data.genreId);
       document.title = "itms200 - " + data.name;
       $('#genreName').text(data.name);
-      return $('#playlist').append(this.current.el);
+      $('#playlist').append(this.current.el);
+      return this.onResize();
     };
 
     App.prototype.onGenreSelect = function(data) {
