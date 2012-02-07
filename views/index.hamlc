@@ -2,42 +2,43 @@
 %html
 	%head
 		%meta(charset="utf-8")
-		%title iTunes Top 200
+		%title itms200
 		
-		%link{rel"stylesheet", href="http://fonts.googleapis.com/css?family=Nunito:400,700", type="text/css", media="screen", charset="utf-8"}
-		%link{rel="stylesheet", href="css/bootstrap.min.css", type="text/css", media="screen", charset="utf-8"}
-		%link{rel="stylesheet", href="css/main.css", type="text/css", media="screen", charset="utf-8"}
+		%link(rel"stylesheet" href="http://fonts.googleapis.com/css?family=Nunito:400700" type="text/css" media="screen" charset="utf-8")
+		%link(rel="stylesheet" href="/styles/bootstrap.min.css" type="text/css" media="screen" charset="utf-8")
+		%link(rel="stylesheet" href="/styles/main.css" type="text/css" media="screen" charset="utf-8")
 
-		%script{src="js/json2.js", type="text/javascript", charset="utf-8"}
-		%script{src="js/jquery-1.7.1.min.js", type="text/javascript", charset="utf-8"}
-		%script{src="js/jquery.cookie.js", type="text/javascript", charset="utf-8"}
-		%script{src="js/haml.js", type="text/javascript", charset="utf-8"}
-		%script{src="js/underscore-min.js", type="text/javascript", charset="utf-8"}
-		%script{src="js/backbone-min.js", type="text/javascript", charset="utf-8"}
-		%script{src="js/json2.js", type="text/javascript", charset="utf-8"}
-		%script{src="js/bootstrap.min.js", type="text/javascript", charset="utf-8"}
-		%script{src="js/main.js", type="text/javascript", charset="utf-8"}
+		%script(src="/scripts/json2.js" type="text/javascript" charset="utf-8")
+		%script(src="/scripts/jquery-1.7.1.min.js" type="text/javascript" charset="utf-8")
+		%script(src="/scripts/jquery.cookie.js" type="text/javascript" charset="utf-8")
+		%script(src="/scripts/jquery.colors.bundle.min.js" type="text/javascript" charset="utf-8")
+		%script(src="/scripts/haml.js" type="text/javascript" charset="utf-8")
+		%script(src="/scripts/underscore-min.js" type="text/javascript" charset="utf-8")
+		%script(src="/scripts/backbone-min.js" type="text/javascript" charset="utf-8")
+		%script(src="/scripts/json2.js" type="text/javascript" charset="utf-8")
+		%script(src="/scripts/bootstrap.min.js" type="text/javascript" charset="utf-8")
+		%script(src="/scripts/main.js" type="text/javascript" charset="utf-8")
 
 	%body
 		.navbar.navbar-fixed-top
 			.navbar-inner
 				.container
-					%span.brand iTunes Top 200
+					%span.brand itms200
 					%ul.nav
-						%li.dropdown
-							%a.dropdown-toggle(href="#", data-toggle="dropdown")
-								Category
-								%b.caret
-							%ul.dropdown-menu
-								%li
-									%a(href = "#") Top 200
-						%li.dropdown
+						-# %li.dropdown
 							%a.dropdown-toggle(href="#", data-toggle="dropdown")
 								Country
 								%b.caret
-							%ul.dropdown-menu
-								%li
-									%a(href = "#") Japan
+							%ul#country.dropdown-menu
+						%li.dropdown
+							%a.dropdown-toggle(href="#", data-toggle="dropdown")
+								%span#genreName Category
+								%b.caret
+							%ul#genreMenu.dropdown-menu
 					.volume
 						%span.hoge Volume
 						%input#volume(type="range" minimum="0" maximum="100" value="50")
+		#playlist
+		#footer
+
+

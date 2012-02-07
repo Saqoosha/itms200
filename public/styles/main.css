@@ -3,7 +3,7 @@
   padding: 0;
 }
 body {
-  background: #000 url("/images/checker.gif") 0 40px;
+  background: #000 url("/images/checker.gif");
   padding-top: 40px;
 }
 .navbar-inner .container {
@@ -11,6 +11,7 @@ body {
 }
 .navbar-fixed-top .brand {
   margin-left: 0;
+  padding-left: 0;
   font-weight: bold;
   color: #000;
   text-shadow: 0 1px 0 rgba(255,255,255,0.10), 0 0 30px rgba(255,255,255,0.13);
@@ -28,14 +29,15 @@ body {
   color: #fff;
 }
 .volume>input {
-  margin: 0 20px 0 5px;
+  margin: 0 0 0 5px;
   padding: 0;
   border: 0;
   width: 150px;
   height: 40px;
 }
-.playlist {
-  width: 100%;
+#playlist {
+  margin: 25px 0;
+  font-family: 'Nunito', 'HiraMaruPro-W4', sans-serif;
 }
 .cover {
   width: 150px;
@@ -43,6 +45,9 @@ body {
   float: left;
   position: relative;
   overflow: hidden;
+  color: #fff;
+  cursor: pointer;
+  -webkit-transition: 0.2s ease-out;
 }
 .cover>.black {
   display: table;
@@ -52,23 +57,22 @@ body {
   left: 0px;
   width: 150px;
   height: 150px;
-  color: #fff;
-  font-family: 'Nunito', 'HiraMaruPro-W4', sans-serif;
   text-align: center;
   background-color: rgba(0,0,0,0.50);
 }
 .cover>.black>.info {
   display: table-cell;
   vertical-align: middle;
+  line-height: 1.2em;
 }
 .cover>.black>.info>.title {
-  margin-bottom: 3px;
+  margin-bottom: 6px;
 }
 .cover>.black>.info>.artist {
   margin-bottom: 10px;
 }
-.cover>.black>.rank {
-  background-color: rgba(255,0,0,0.50);
+.cover>.rank {
+  background-color: rgba(255,0,0,0.70);
   width: 100px;
   height: 30px;
   text-align: center;
@@ -78,4 +82,14 @@ body {
   left: 0;
   -webkit-transform-origin: 50px 0;
   -webkit-transform: translate(-50px, 0) rotate(-45deg);
+}
+.playing {
+  -webkit-transform: scale(1.16);
+  -webkit-box-shadow: 0px 10px 50px #000;
+  z-index: 100;
+  -webkit-transition: 0.2s ease-out;
+}
+#footer {
+  clear: both;
+  height: 25px;
 }
