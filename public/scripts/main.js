@@ -218,6 +218,7 @@
     __extends(Track, _super);
 
     function Track() {
+      this.stop = __bind(this.stop, this);
       this.play = __bind(this.play, this);
       Track.__super__.constructor.apply(this, arguments);
     }
@@ -231,6 +232,10 @@
       return this.player.play(this.get('audioUrl'));
     };
 
+    Track.prototype.stop = function() {
+      return this.player.stop();
+    };
+
     return Track;
 
   })(Backbone.Model);
@@ -240,6 +245,7 @@
     __extends(TrackView, _super);
 
     function TrackView() {
+      this.onClickStatus = __bind(this.onClickStatus, this);
       this.onStop = __bind(this.onStop, this);
       this.onStart = __bind(this.onStart, this);
       this.onClick = __bind(this.onClick, this);
@@ -315,17 +321,38 @@
     };
 
     TrackView.prototype.onClick = function(e) {
-      if (e.target.className !== 'badge') return this.model.play();
+      if (e.target.className !== 'badge') {
+        if (this.el.hasClass('playing')) {
+          return this.model.stop();
+        } else {
+          return this.model.play();
+        }
+      }
     };
 
     TrackView.prototype.onStart = function() {
       this.el.addClass('playing');
-      return this.rank.fadeIn(300);
+      this.rank.fadeIn(300);
+      $('#status').text((this.model.get('order') + 1) + '. ' + this.model.get('itemName') + ' - ' + this.model.get('artistName'));
+      return $('#status').on('click', this.onClickStatus);
     };
 
     TrackView.prototype.onStop = function() {
       this.el.removeClass('playing');
-      return this.rank.fadeOut(300);
+      this.rank.fadeOut(300);
+      $('#status').text('');
+      return $('#status').off('click', this.onClickStatus);
+    };
+
+    TrackView.prototype.onClickStatus = function() {
+      var bh, v, wh;
+      wh = $(window).innerHeight();
+      bh = $('body').height() + 40;
+      v = this.el.offset().top - (wh >> 1) + 75;
+      v = Math.max(0, Math.min(bh - wh, v));
+      return $('html, body').animate({
+        scrollTop: v
+      }, 1500, 'easeOutExpo');
     };
 
     return TrackView;
@@ -430,10 +457,10 @@
       this.onResize = __bind(this.onResize, this);
       this.onPopState = __bind(this.onPopState, this);
       this.onGenreSelect = __bind(this.onGenreSelect, this);
-      this.changeGenre = __bind(this.changeGenre, this);      VolumeSlider.init($('#volume'));
+      this.changeGenre = __bind(this.changeGenre, this);      VolumeSlider.init($('#volumeSlider'));
       window.addEventListener('popstate', this.onPopState);
       window.addEventListener('resize', this.onResize);
-      this.onResize();
+      setTimeout(this.onResize, 100);
       this.genreMenu = new GenreMenu($('#genreMenu'), genreData);
       this.genreMenu.bind('select', this.onGenreSelect);
       this.changeGenre(this.find() || genreData[0]);
@@ -441,10 +468,8 @@
 
     App.prototype.find = function() {
       var data, genreId, id, match, _i, _len;
-      console.log(location.pathname);
       match = location.pathname.match(/^\/(\d+)\/(\d+)$/);
       if ((match != null ? match.length : void 0) === 3) {
-        console.log(match);
         id = parseInt(match[1]);
         genreId = parseInt(match[2]);
         for (_i = 0, _len = genreData.length; _i < _len; _i++) {
@@ -478,7 +503,7 @@
     App.prototype.onResize = function(e) {
       var m, n, w;
       w = $('body').width();
-      n = ~~((w - 30) / 150);
+      n = ~~((w - 50) / 150);
       m = (w - n * 150) >> 1;
       $('#playlist').css({
         'width': (150 * n) + 'px',
@@ -489,8 +514,11 @@
         'padding-left': m + 'px',
         'padding-right': m + 'px'
       });
-      return $('body').css({
+      $('body').css({
         'background-position': m + 'px 65px'
+      });
+      return $('#status').css({
+        width: $('#volume').offset().left - $('#status').offset().left - 100 + 'px'
       });
     };
 

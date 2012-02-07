@@ -111,6 +111,9 @@ class Track extends Backbone.Model
         @player.bind 'all', (e) => @trigger.apply @, [e, @]
         @player.play @get 'audioUrl'
     
+    stop: =>
+        @player.stop()
+    
     
 class TrackView extends Backbone.View
     
@@ -178,15 +181,30 @@ class TrackView extends Backbone.View
         @rank.fadeOut 300 if not @el.hasClass 'playing'
     
     onClick: (e) =>
-        @model.play() if e.target.className isnt 'badge'
+        if e.target.className isnt 'badge'
+            if @el.hasClass 'playing'
+                @model.stop()
+            else
+                @model.play()
     
     onStart: =>
         @el.addClass 'playing'
         @rank.fadeIn 300
+        $('#status').text (@model.get('order') + 1) + '. ' + @model.get('itemName') + ' - ' + @model.get('artistName')
+        $('#status').on 'click', @onClickStatus
     
     onStop: =>
         @el.removeClass 'playing'
         @rank.fadeOut 300
+        $('#status').text ''
+        $('#status').off 'click', @onClickStatus
+    
+    onClickStatus: =>
+        wh = $(window).innerHeight()
+        bh = $('body').height() + 40
+        v = @el.offset().top - (wh >> 1) + 75
+        v = Math.max 0, Math.min bh - wh, v
+        $('html, body').animate scrollTop: v, 1500, 'easeOutExpo'
     
 
 class Playlist extends Backbone.Collection
@@ -243,21 +261,19 @@ class GenreMenu
 class App
     
     constructor: ->
-        VolumeSlider.init $ '#volume'
+        VolumeSlider.init $ '#volumeSlider'
 
         window.addEventListener 'popstate', @onPopState
         window.addEventListener 'resize', @onResize
-        @onResize()
+        setTimeout @onResize, 100
 
         @genreMenu = new GenreMenu $('#genreMenu'), genreData
         @genreMenu.bind 'select', @onGenreSelect
         @changeGenre @find() || genreData[0]
     
     find: ->
-        console.log location.pathname
         match = location.pathname.match /^\/(\d+)\/(\d+)$/
         if match?.length is 3
-            console.log match
             id = parseInt match[1]
             genreId = parseInt match[2]
             for data in genreData
@@ -282,7 +298,7 @@ class App
     
     onResize: (e) =>
         w = $('body').width()
-        n = ~~((w - 30) / 150)
+        n = ~~((w - 50) / 150)
         m = (w - n * 150) >> 1
         $('#playlist').css
             'width': (150 * n) + 'px'
@@ -292,6 +308,8 @@ class App
             'padding-left': m + 'px'
             'padding-right': m + 'px'
         $('body').css 'background-position': m + 'px 65px'
+        $('#status').css
+            width: $('#volume').offset().left - $('#status').offset().left - 100 + 'px', 
     
     
 $ -> new App

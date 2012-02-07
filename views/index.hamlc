@@ -12,6 +12,7 @@
 		%script(src="/scripts/jquery-1.7.1.min.js" type="text/javascript" charset="utf-8")
 		%script(src="/scripts/jquery.cookie.js" type="text/javascript" charset="utf-8")
 		%script(src="/scripts/jquery.colors.bundle.min.js" type="text/javascript" charset="utf-8")
+		%script(src="/scripts/jquery.easing.1.3.js" type="text/javascript" charset="utf-8")
 		%script(src="/scripts/haml.js" type="text/javascript" charset="utf-8")
 		%script(src="/scripts/underscore-min.js" type="text/javascript" charset="utf-8")
 		%script(src="/scripts/backbone-min.js" type="text/javascript" charset="utf-8")
@@ -25,19 +26,15 @@
 				.container
 					%span.brand itms200
 					%ul.nav
-						-# %li.dropdown
-							%a.dropdown-toggle(href="#", data-toggle="dropdown")
-								Country
-								%b.caret
-							%ul#country.dropdown-menu
 						%li.dropdown
 							%a.dropdown-toggle(href="#", data-toggle="dropdown")
 								%span#genreName Category
 								%b.caret
 							%ul#genreMenu.dropdown-menu
-					.volume
-						%span.hoge Volume
-						%input#volume(type="range" minimum="0" maximum="100" value="50")
+					#status
+					#volume
+						%span.labell Volume
+						%input#volumeSlider(type="range" minimum="0" maximum="100" value="50")
 		#playlist
 		#footer
 
