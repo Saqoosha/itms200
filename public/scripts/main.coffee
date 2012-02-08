@@ -263,13 +263,12 @@ class App
     constructor: ->
         VolumeSlider.init $ '#volumeSlider'
 
+        @genreMenu = new GenreMenu $('#genreMenu'), genreData
+        @genreMenu.bind 'select', @onGenreSelect
+
         window.addEventListener 'popstate', @onPopState
         window.addEventListener 'resize', @onResize
         setTimeout @onResize, 100
-
-        @genreMenu = new GenreMenu $('#genreMenu'), genreData
-        @genreMenu.bind 'select', @onGenreSelect
-        @changeGenre @find() || genreData[0]
     
     find: ->
         match = location.pathname.match /^\/(\d+)\/(\d+)$/
@@ -295,7 +294,7 @@ class App
         @changeGenre data
         
     onPopState: (e) =>
-        @changeGenre e.state if e.state?
+        @changeGenre @find()
     
     onResize: (e) =>
         w = $('body').width()

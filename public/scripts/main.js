@@ -458,12 +458,11 @@
       this.onPopState = __bind(this.onPopState, this);
       this.onGenreSelect = __bind(this.onGenreSelect, this);
       this.changeGenre = __bind(this.changeGenre, this);      VolumeSlider.init($('#volumeSlider'));
+      this.genreMenu = new GenreMenu($('#genreMenu'), genreData);
+      this.genreMenu.bind('select', this.onGenreSelect);
       window.addEventListener('popstate', this.onPopState);
       window.addEventListener('resize', this.onResize);
       setTimeout(this.onResize, 100);
-      this.genreMenu = new GenreMenu($('#genreMenu'), genreData);
-      this.genreMenu.bind('select', this.onGenreSelect);
-      this.changeGenre(this.find() || genreData[0]);
     }
 
     App.prototype.find = function() {
@@ -498,7 +497,7 @@
     };
 
     App.prototype.onPopState = function(e) {
-      if (e.state != null) return this.changeGenre(e.state);
+      return this.changeGenre(this.find());
     };
 
     App.prototype.onResize = function(e) {
