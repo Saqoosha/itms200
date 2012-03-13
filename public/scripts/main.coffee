@@ -1,23 +1,23 @@
 genreData = [
-    { name: 'Top 200', id: 1000, genreId: 34 }
+    { name: 'Top 300', id: 1000, genreId: 34 }
     { name: 'J-Pop', id: 1024, genreId: 27 }
-    { name: 'オルタナティブ', id: 1015, genreId: 20 }
-    { name: 'アニメ', id: 27743, genreId: 29 }
-    { name: 'ブルース', id: 1001, genreId: 2 }
-    { name: 'クラシック', id: 1002, genreId: 5 }
-    { name: 'ダンス', id: 1012, genreId: 17 }
-    { name: 'エレクトロニック', id: 1004, genreId: 7 }
-    { name: 'フィットネス／エクササイズ', id: 27800, genreId: 50 }
-    { name: 'ヒップホップ／ラップ', id: 1013, genreId: 18 }
-    { name: 'ジャズ', id: 1006, genreId: 11 }
-    { name: '歌謡曲', id: 1025, genreId: 30 }
-    { name: 'ポップ', id: 1009, genreId: 14 }
     { name: 'R&B／ソウル', id: 1010, genreId: 15 }
+    { name: 'アニメ', id: 27743, genreId: 29 }
+    { name: 'エレクトロニック', id: 1004, genreId: 7 }
+    { name: 'オルタナティブ', id: 1015, genreId: 20 }
+    { name: 'クラシック', id: 1002, genreId: 5 }
+    { name: 'サウンドトラック', id: 1011, genreId: 16 }
+    { name: 'ジャズ', id: 1006, genreId: 11 }
+    { name: 'ダンス', id: 1012, genreId: 17 }
+    { name: 'ヒップホップ／ラップ', id: 1013, genreId: 18 }
+    { name: 'フィットネス／エクササイズ', id: 27800, genreId: 50 }
+    { name: 'ブルース', id: 1001, genreId: 2 }
+    { name: 'ポップ', id: 1009, genreId: 14 }
     { name: 'レゲエ', id: 1031, genreId: 24 }
     { name: 'ロック', id: 1017, genreId: 21 }
-    { name: 'サウンドトラック', id: 1011, genreId: 16 }
-    { name: 'ヴォーカル', id: 1016, genreId: 23 }
     { name: 'ワールド', id: 1014, genreId: 19 }
+    { name: 'ヴォーカル', id: 1016, genreId: 23 }
+    { name: '歌謡曲', id: 1025, genreId: 30 }
     ]
 
 
@@ -143,8 +143,6 @@ class TrackView extends Backbone.View
     
     render: =>
         data = @model.toJSON()
-        data.imageUrl ?= '/images/no-cover.png';
-        data.storeUrl = "http://itunes.apple.com/jp/album/id#{data.playlistId}?i=#{data.itemId}"
         data.rank = data.order + 1
         data.color = "background-color: #{HSV.toRGBA data.rank, 1, 0.95, 0.7}"
         @el.html @template data
@@ -210,6 +208,24 @@ class TrackView extends Backbone.View
 class Playlist extends Backbone.Collection
     
     model: Track
+    sync: (method, model, options) ->
+        options.dataType = 'jsonp'
+        Backbone.sync method, model, options
+    parse: (response) ->
+        items = []
+        for e in response.feed.entry
+            imgs = e['im:image']
+            i =
+                artistName: e['im:artist'].label
+                playlistName: e['im:collection']['im:name'].label
+                itemName: e['im:name'].label
+                imageUrl: imgs.pop().label
+            for l in e.link
+                switch l.attributes.type
+                    when 'text/html' then i.storeUrl = l.attributes.href
+                    when 'audio/x-m4a' then i.audioUrl = l.attributes.href
+            items.push i
+        return items
     
 
 class PlaylistView extends Backbone.View
@@ -217,9 +233,9 @@ class PlaylistView extends Backbone.View
     tagName: 'div'
     className: 'playlist'
     
-    initialize: (id, genreId) ->
+    initialize: (genreId) ->
         @playlist = new Playlist
-        @playlist.url = "/playlist/#{id}/#{genreId}"
+        @playlist.url = "http://itunes.apple.com/jp/rss/topsongs/limit=300/genre=#{genreId}/json?callback=?"
         @playlist.bind 'add', @addOne
         @playlist.bind 'reset', @addAll
         @playlist.fetch()
@@ -232,6 +248,7 @@ class PlaylistView extends Backbone.View
     
     addAll: =>
         @playlist.each @addOne
+        $(@el).append "<div style='clear:both'/>"
         
     onPlayComplete: (track) =>
         order = track.get 'order'
@@ -245,7 +262,7 @@ class GenreMenu
         _.extend @, Backbone.Events
 
         for data in list
-            li = $ "<li><a href='/#{data.id}/#{data.genreId}'>#{data.name}</a></li>"
+            li = $ "<li><a href='/#{data.genreId}'>#{data.name}</a></li>"
             a = $ 'a', li
             a.data 'ids', data
             a.click @onClick
@@ -254,7 +271,7 @@ class GenreMenu
     onClick: (e) =>
         e.preventDefault()
         ids = $(e.delegateTarget).data 'ids'
-        history.pushState ids, ids.name, "/#{ids.id}/#{ids.genreId}"
+        history.pushState ids, ids.name, "/#{ids.genreId}"
         @trigger 'select', ids
 
 
@@ -271,12 +288,11 @@ class App
         setTimeout @onResize, 100
     
     find: ->
-        match = location.pathname.match /^\/(\d+)\/(\d+)$/
-        if match?.length is 3
-            id = parseInt match[1]
-            genreId = parseInt match[2]
+        match = location.pathname.match /^\/(\d+)$/
+        if match?.length is 2
+            genreId = parseInt match[1]
             for data in genreData
-                return data if data.id is id and data.genreId is genreId
+                return data if data.genreId is genreId
         else if location.pathname is '/'
             return genreData[0]
         return null
@@ -284,8 +300,8 @@ class App
     changeGenre: (data) =>
         MusicPlayer.current?.stop()
         @current?.remove()
-        @current = new PlaylistView data.id, data.genreId
-        document.title = "itms200 - #{data.name}"
+        @current = new PlaylistView data.genreId
+        document.title = "itms300 - #{data.name}"
         $('#genreName').text data.name
         $('#playlist').append @current.el
         @onResize()
@@ -307,6 +323,7 @@ class App
             'width': (150 * n) + 'px'
             'padding-left': m + 'px'
             'padding-right': m + 'px'
+        $('#footer-inner').width (150 * n) + 'px'
         $('body').css 'background-position': m + 'px 65px'
         $('#status').css
             width: $('#volume').offset().left - $('#status').offset().left - 100 + 'px', 

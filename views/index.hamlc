@@ -2,7 +2,13 @@
 %html
 	%head
 		%meta(charset="utf-8")
-		%title itms200
+		%meta(property='og:title', content='itms300')
+		%meta(property='og:type', contnt='website')
+		%meta(property='og:image', content='http://itms300.saqoo.sh/images/ogimage.jpg')
+		%meta(property='og:url', content='http://itms300.saqoo.sh/')
+		%meta(property='og:site_name', content='itms300')
+		%meta(property='fb:app_id', content='133750190084245')
+		%title itms300
 		
 		%link(rel"stylesheet" href="http://fonts.googleapis.com/css?family=Nunito:400700" type="text/css" media="screen" charset="utf-8")
 		%link(rel="stylesheet" href="/styles/bootstrap.min.css" type="text/css" media="screen" charset="utf-8")
@@ -21,10 +27,19 @@
 		%script(src="/scripts/main.js" type="text/javascript" charset="utf-8")
 
 	%body
+		#fb-root
+		:javascript
+			(function(d, s, id) {
+			var js, fjs = d.getElementsByTagName(s)[0];
+			if (d.getElementById(id)) return;
+			js = d.createElement(s); js.id = id;
+			js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=129594067167016";
+			fjs.parentNode.insertBefore(js, fjs);
+			}(document, 'script', 'facebook-jssdk'));
 		.navbar.navbar-fixed-top
 			.navbar-inner
 				.container
-					%span.brand itms200
+					%span.brand itms300
 					%ul.nav
 						%li.dropdown
 							%a.dropdown-toggle(href="#", data-toggle="dropdown")
@@ -35,7 +50,19 @@
 					#volume
 						%span.labell Volume
 						%input#volumeSlider(type="range" minimum="0" maximum="100" value="50")
-		#playlist
-		#footer
+		#wrapper
+			#playlist
+			#footer
+				#footer-inner
+					<div id="saqoosha">
+						Developed by <a href="http://twitter.com/Saqoosha">@Saqoosha</a>. Source code is available at <a href="https://github.com/Saqoosha/itms200">Github</a>.
+					</div>
+					<div id="twitter">
+						<a href="https://twitter.com/share" class="twitter-share-button" data-via="Saqoosha">Tweet</a>
+						<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+					</div>
+					<div id="facebook">
+						<div class="fb-like" data-href="http://itms300.saqoo.sh" data-send="false" data-layout="button_count" data-width="90" data-show-faces="false"></div>
+					</div>
 
 
